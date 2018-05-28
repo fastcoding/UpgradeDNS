@@ -12,7 +12,7 @@ import json,urllib,re
 #替换以下参数
 ID="xxxxx"
 Secret="xxxxx"
-RegionId="cn-hangzhou"
+RegionId="cn-shenzhen"
 DomainName="xxxx.com"
 #想要自动修改的主机名和域名类型
 HostNameList = ['www','@']
@@ -24,6 +24,7 @@ clt = client.AcsClient(ID,Secret,RegionId)
 def GetLocalIP():
     IPInfo = urllib.urlopen("http://ip.chinaz.com/getip.aspx").read()
     IP = re.findall(r"ip:'(.*?)',", IPInfo)[0]
+    print 'Current Internet IP:',IP
     return IP
 
 #获取域名列表（暂时无用）
@@ -57,11 +58,13 @@ def GetAllDomainRecords(DomainName, Types, IP):
             Type = x['Type']
             if RR == HostName and Type == Types:
                 RecordId = x['RecordId']
-                print RecordId
-                EditDomainRecord(HostName, RecordId, Types, IP)
+                OldIP = x['Value']
+                print RecordId,':',OldIP
+                if OldIP != IP :
+                    EditDomainRecord(HostName, RecordId, Types, IP)
+                else:
+                    print 'IP not changed - Skip update'
 
 IP = GetLocalIP()
 GetDomainList()
 GetAllDomainRecords(DomainName, Types, IP)
-
-
